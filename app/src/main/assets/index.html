@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizMaster - 刷题APP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
+            background: #FFF8F8;
+            color: #1C1B1F;
+            line-height: 1.6;
+        }
+        
+        /* 首页 */
+        .home-screen {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #CAC4D0;
+            margin-bottom: 24px;
+        }
+        
+        .top-bar h1 {
+            font-size: 24px;
+            font-weight: 400;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        /* 题库卡片 */
+        .bank-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .bank-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .bank-card h3 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .bank-card p {
+            font-size: 14px;
+            color: #49454F;
+            margin-bottom: 12px;
+        }
+        
+        .bank-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .btn-primary {
+            background: #6750A4;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5D45A4;
+        }
+        
+        .btn-secondary {
+            background: #E8DEF8;
+            color: #1D192B;
+        }
+        
+        .btn-secondary:hover {
+            background: #D8CEF8;
+        }
+        
+        /* 悬浮按钮 */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: #6750A4;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+        
+        .fab:hover {
+            transform: scale(1.1);
+        }
+        
+        /* 练习界面 */
+        .practice-screen {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 16px;
+            display: none;
+        }
+        
+        .practice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .progress {
+            font-size: 16px;
+            color: #49454F;
+        }
+        
+        .question-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .question-number {
+            font-size: 14px;
+            color: #49454F;
+            margin-bottom: 8px;
+        }
+        
+        .question-content {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+        
+        /* 选项网格 - 2x2布局 */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .option-item {
+            background: white;
+            border: 2px solid #CAC4D0;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: flex-start;
+            transition: all 0.2s;
+            min-height: 60px;
+        }
+        
+        .option-item:hover {
+            border-color: #6750A4;
+            background: #F7F2FA;
+        }
+        
+        .option-item.selected {
+            border-color: #6750A4;
+            background: #E8DEF8;
+        }
+        
+        .option-item.correct {
+            border-color: #4CAF50;
+            background: #E8F5E9;
+        }
+        
+        .option-item.wrong {
+            border-color: #F44336;
+            background: #FFEBEE;
+        }
+        
+        .option-letter {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            border-radius: 50%;
+            border: 2px solid #6750A4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: 600;
+            color: #6750A4;
+            font-size: 14px;
+        }
+        
+        .option-item.correct .option-letter {
+            background: #4CAF50;
+            border-color: #4CAF50;
+            color: white;
+        }
+        
+        .option-item.wrong .option-letter {
+            background: #F44336;
+            border-color: #F44336;
+            color: white;
+        }
+        
+        .option-content {
+            flex: 1;
+            font-size: 16px;
+            line-height: 1.5;
+            padding-top: 4px;
+        }
+        
+        /* 反馈卡片 */
+        .feedback-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+            display: none;
+        }
+        
+        .feedback-card.correct {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        
+        .feedback-card.wrong {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+        
+        .feedback-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .correct-answer {
+            font-size: 16px;
+            margin-top: 8px;
+            color: #4CAF50;
+        }
+        
+        .explanation {
+            font-size: 14px;
+            color: #49454F;
+            margin-top: 8px;
+        }
+        
+        /* 按钮 */
+        .submit-btn, .next-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: background 0.2s;
+        }
+        
+        .submit-btn {
+            background: #6750A4;
+            color: white;
+        }
+        
+        .submit-btn:hover:not(:disabled) {
+            background: #5D45A4;
+        }
+        
+        .submit-btn:disabled {
+            background: #CAC4D0;
+            cursor: not-allowed;
+        }
+        
+        .next-btn {
+            background: #6750A4;
+            color: white;
+        }
+        
+        .next-btn:hover {
+            background: #5D45A4;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 16px;
+        }
+        
+        .nav-btn {
+            padding: 8px 16px;
+            background: none;
+            border: 1px solid #CAC4D0;
+            border-radius: 20px;
+            cursor: pointer;
+            color: #6750A4;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #F7F2FA;
+        }
+        
+        .nav-btn:disabled {
+            color: #CAC4D0;
+            cursor: not-allowed;
+        }
+        
+        /* 导入界面 */
+        .import-screen {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 16px;
+            display: none;
+        }
+        
+        .import-area {
+            border: 2px dashed #CAC4D0;
+            border-radius: 12px;
+            padding: 48px;
+            text-align: center;
+            margin-top: 24px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        
+        .import-area:hover {
+            border-color: #6750A4;
+        }
+        
+        .import-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 48px 16px;
+            color: #49454F;
+        }
+        
+        /* 判断题样式 - 垂直布局 */
+        .options-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 首页 -->
+    <div class="home-screen" id="homeScreen">
+        <div class="top-bar">
+            <h1>QuizMaster</h1>
+            <span style="font-size: 24px; cursor: pointer;">⚙️</span>
+        </div>
+        
+        <h2 class="section-title">📚 我的题库</h2>
+        
+        <div id="bankList"></div>
+        
+        <div class="empty-state" id="emptyState">
+            <p>暂无题库<br>点击右下角按钮导入</p>
+        </div>
+    </div>
+    
+    <!-- 导入界面 -->
+    <div class="import-screen" id="importScreen">
+        <div class="top-bar">
+            <span style="font-size: 24px; cursor: pointer;" onclick="showHome()">← 返回</span>
+            <h1>导入题库</h1>
+            <div></div>
+        </div>
+        
+        <div class="import-area" onclick="document.getElementById('fileInput').click()">
+            <div class="import-icon">📄</div>
+            <p style="font-size: 18px; margin-bottom: 8px;">选择文件导入</p>
+            <p style="font-size: 14px; color: #49454F;">支持 .docx .pdf</p>
+        </div>
+        <input type="file" id="fileInput" accept=".docx,.pdf" style="display: none;" onchange="handleFileSelect(event)">
+    </div>
+    
+    <!-- 练习界面 -->
+    <div class="practice-screen" id="practiceScreen">
+        <div class="practice-header">
+            <span style="font-size: 24px; cursor: pointer;" onclick="showHome()">← 退出</span>
+            <span class="progress" id="progress">第 1 题 / 共 0 题</span>
+        </div>
+        
+        <div class="question-card">
+            <div class="question-number" id="questionNumber">题目 1</div>
+            <div class="question-content" id="questionContent"></div>
+        </div>
+        
+        <div class="options-grid" id="optionsContainer"></div>
+        
+        <button class="submit-btn" id="submitBtn" onclick="submitAnswer()" disabled>提交答案</button>
+        
+        <div class="feedback-card" id="feedbackCard">
+            <div class="feedback-title" id="feedbackTitle"></div>
+            <div class="correct-answer" id="correctAnswer"></div>
+            <div class="explanation" id="explanation"></div>
+        </div>
+        
+        <button class="next-btn" id="nextBtn" onclick="nextQuestion()" style="display: none;">下一题 →</button>
+        
+        <div class="nav-buttons">
+            <button class="nav-btn" id="prevBtn" onclick="previousQuestion()" disabled>← 上一题</button>
+            <button class="nav-btn" id="nextBtn2" onclick="nextQuestion()" disabled>下一题 →</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/mammoth@1.5.1/mammoth.browser.min.js"></script>
+    <script>
+        // 全局变量
+        let questionBanks = JSON.parse(localStorage.getItem('quizmaster_banks') || '[]');
+        let currentBank = null;
+        let currentQuestions = [];
+        let currentIndex = 0;
+        let selectedAnswer = '';
+        let answerState = 'idle'; // idle, submitted
+        
+        // 显示首页
+        function showHome() {
+            document.getElementById('homeScreen').style.display = 'block';
+            document.getElementById('importScreen').style.display = 'none';
+            document.getElementById('practiceScreen').style.display = 'none';
+            renderBankList();
+        }
+        
+        // 显示导入界面
+        function showImport() {
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('importScreen').style.display = 'block';
+            document.getElementById('practiceScreen').style.display = 'none';
+        }
+        
+        // 显示练习界面
+        function showPractice() {
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('importScreen').style.display = 'none';
+            document.getElementById('practiceScreen').style.display = 'block';
+        }
+        
+        // 渲染题库列表
+        function renderBankList() {
+            const bankList = document.getElementById('bankList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (questionBanks.length === 0) {
+                bankList.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            bankList.innerHTML = questionBanks.map((bank, index) => `
+                <div class="bank-card" onclick="startPractice(${index})">
+                    <h3>📄 ${bank.name}</h3>
+                    <p>共 ${bank.totalQuestions} 题 | 已练 ${bank.practicedCount || 0} 题</p>
+                    <div class="bank-actions">
+                        <button class="btn btn-primary" onclick="event.stopPropagation(); startPractice(${index})">
+                            ${bank.practicedCount > 0 ? '继续练习' : '开始练习'}
+                        </button>
+                        ${bank.practicedCount > 0 ? `<button class="btn btn-secondary" onclick="event.stopPropagation(); alert('错题本功能开发中')">错题本</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 开始练习
+        function startPractice(bankIndex) {
+            currentBank = questionBanks[bankIndex];
+            currentQuestions = currentBank.questions || [];
+            currentIndex = 0;
+            selectedAnswer = '';
+            answerState = 'idle';
+            
+            if (currentQuestions.length === 0) {
+                alert('该题库没有题目！');
+                return;
+            }
+            
+            showPractice();
+            renderQuestion();
+        }
+        
+        // 渲染题目
+        function renderQuestion() {
+            const question = currentQuestions[currentIndex];
+            
+            document.getElementById('progress').textContent = `第 ${currentIndex + 1} 题 / 共 ${currentQuestions.length} 题`;
+            document.getElementById('questionNumber').textContent = `题目 ${question.questionNumber}`;
+            document.getElementById('questionContent').textContent = question.content;
+            
+            // 渲染选项 - 使用2x2网格布局
+            const optionsContainer = document.getElementById('optionsContainer');
+            
+            // 检测题目类型：如果有4个选项，使用2x2网格；如果只有2个选项（判断题），使用垂直布局
+            const optionCount = ['A', 'B', 'C', 'D'].filter(letter => question[`option${letter}`]).length;
+            
+            if (optionCount === 2) {
+                // 判断题：垂直布局
+                optionsContainer.className = 'options-vertical';
+            } else {
+                // 单选题/多选题：2x2网格布局
+                optionsContainer.className = 'options-grid';
+            }
+            
+            optionsContainer.innerHTML = '';
+            
+            ['A', 'B', 'C', 'D'].forEach(letter => {
+                const optionKey = `option${letter}`;
+                if (question[optionKey]) {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'option-item';
+                    optionDiv.onclick = () => selectAnswer(letter);
+                    
+                    if (answerState === 'submitted') {
+                        if (letter === question.correctAnswer) {
+                            optionDiv.classList.add('correct');
+                        } else if (letter === selectedAnswer && letter!= question.correctAnswer) {
+                            optionDiv.classList.add('wrong');
+                        }
+                    } else if (letter === selectedAnswer) {
+                        optionDiv.classList.add('selected');
+                    }
+                    
+                    optionDiv.innerHTML = `
+                        <div class="option-letter">${letter}</div>
+                        <div class="option-content">${question[optionKey]}</div>
+                    `;
+                    
+                    optionsContainer.appendChild(optionDiv);
+                }
+            });
+            
+            // 更新按钮状态
+            document.getElementById('submitBtn').disabled = selectedAnswer === '' || answerState === 'submitted';
+            document.getElementById('submitBtn').style.display = answerState === 'submitted' ? 'none' : 'block';
+            document.getElementById('nextBtn').style.display = answerState === 'submitted' ? 'block' : 'none';
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
+            document.getElementById('nextBtn2').disabled = currentIndex === currentQuestions.length - 1;
+            
+            // 隐藏反馈
+            document.getElementById('feedbackCard').style.display = 'none';
+        }
+        
+        // 选择答案
+        function selectAnswer(letter) {
+            if (answerState === 'submitted') return;
+            
+            selectedAnswer = letter;
+            renderQuestion();
+        }
+        
+        // 提交答案
+        function submitAnswer() {
+            if (!selectedAnswer) return;
+            
+            const question = currentQuestions[currentIndex];
+            const isCorrect = selectedAnswer === question.correctAnswer;
+            
+            answerState = 'submitted';
+            
+            // 显示反馈
+            const feedbackCard = document.getElementById('feedbackCard');
+            feedbackCard.style.display = 'block';
+            feedbackCard.className = `feedback-card ${isCorrect ? 'correct' : 'wrong'}`;
+            
+            document.getElementById('feedbackTitle').textContent = isCorrect ? '✓ 回答正确' : '✗ 回答错误';
+            
+            if (!isCorrect) {
+                document.getElementById('correctAnswer').textContent = `正确答案：${question.correctAnswer}`;
+            } else {
+                document.getElementById('correctAnswer').textContent = '';
+            }
+            
+            if (question.explanation) {
+                document.getElementById('explanation').textContent = `解析：${question.explanation}`;
+            } else {
+                document.getElementById('explanation').textContent = '';
+            }
+            
+            // 更新练习统计
+            currentBank.practicedCount = (currentBank.practicedCount || 0) + 1;
+            if (isCorrect) {
+                currentBank.correctCount = (currentBank.correctCount || 0) + 1;
+            }
+            saveBanks();
+            
+            renderQuestion();
+        }
+        
+        // 下一题
+        function nextQuestion() {
+            if (currentIndex < currentQuestions.length - 1) {
+                currentIndex++;
+                selectedAnswer = '';
+                answerState = 'idle';
+                renderQuestion();
+            }
+        }
+        
+        // 上一题
+        function previousQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                selectedAnswer = '';
+                answerState = 'idle';
+                renderQuestion();
+            }
+        }
+        
+        // 处理文件选择
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const fileName = file.name;
+            const fileType = fileName.endsWith('.docx') ? 'word' : 'pdf';
+            
+            if (fileType === 'word') {
+                parseWordFile(file, fileName);
+            } else {
+                parsePdfFile(file, fileName);
+            }
+        }
+        
+        // 解析Word文件
+        function parseWordFile(file, fileName) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const arrayBuffer = e.target.result;
+                
+                mammoth.extractRawText({arrayBuffer: arrayBuffer})
+                    .then(result => {
+                        const text = result.value;
+                        const questions = parseQuestions(text);
+                        
+                        if (questions.length === 0) {
+                            alert('未能识别到题目，请检查文件格式！');
+                            return;
+                        }
+                        
+                        const bank = {
+                            name: fileName.replace('.docx', ''),
+                            fileName: fileName,
+                            totalQuestions: questions.length,
+                            practicedCount: 0,
+                            correctCount: 0,
+                            questions: questions
+                        };
+                        
+                        questionBanks.push(bank);
+                        saveBanks();
+                        
+                        alert(`成功导入 ${questions.length} 道题！`);
+                        showHome();
+                    })
+                    .catch(err => {
+                        alert('解析失败：' + err.message);
+                    });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // 解析PDF文件（简化版）
+        function parsePdfFile(file, fileName) {
+            alert('PDF解析功能开发中，请先使用Word格式（.docx）');
+        }
+        
+        // 解析题目文本 - 支持一行多个选项
+        function parseQuestions(text) {
+            const questions = [];
+            const lines = text.split('\n');
+            
+            let currentQuestion = null;
+            let questionBuffer = '';
+            
+            const chapterPattern = /^[一二三四五六七八九十]+、(.+?)（第(\d+)-(\d+)题）/;
+            const questionPattern = /^(\d+)\.\s+(.+)/;
+            const answerPattern = /（\s*([A-D]+)\s*）/;
+            
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) {
+                    if (questionBuffer) questionBuffer += '\n';
+                    continue;
+                }
+                
+                // 跳过章节标题
+                if (chapterPattern.test(line)) {
+                    if (currentQuestion && questionBuffer) {
+                        finishQuestion(currentQuestion, questionBuffer);
+                        questions.push(currentQuestion);
+                    }
+                    currentQuestion = null;
+                    questionBuffer = '';
+                    continue;
+                }
+                
+                // 匹配题目编号
+                const questionMatch = line.match(questionPattern);
+                if (questionMatch) {
+                    if (currentQuestion && questionBuffer) {
+                        finishQuestion(currentQuestion, questionBuffer);
+                        questions.push(currentQuestion);
+                    }
+                    
+                    currentQuestion = {
+                        questionNumber: parseInt(questionMatch[1]),
+                        content: '',
+                        optionA: '',
+                        optionB: '',
+                        optionC: '',
+                        optionD: '',
+                        correctAnswer: '',
+                        explanation: ''
+                    };
+                    questionBuffer = questionMatch[2];
+                    continue;
+                }
+                
+                // 匹配选项（支持一行多个选项，如 "A. xxx    B. xxx"）
+                if (currentQuestion) {
+                    // 使用正则提取所有选项
+                    const optionMatches = [...line.matchAll(/([A-D])\.\s+(.+?)(?=\s+[A-D]\.|$)/g)];
+                    
+                    if (optionMatches.length > 0) {
+                        // 这一行有选项
+                        optionMatches.forEach(match => {
+                            const letter = match[1];
+                            const content = match[2].trim();
+                            currentQuestion[`option${letter}`] = content;
+                        });
+                        continue;
+                    }
+                }
+                
+                // 普通文本，追加到题目缓冲区
+                if (currentQuestion) {
+                    if (questionBuffer) questionBuffer += ' ';
+                    questionBuffer += line;
+                }
+            }
+            
+            // 保存最后一题
+            if (currentQuestion && questionBuffer) {
+                finishQuestion(currentQuestion, questionBuffer);
+                questions.push(currentQuestion);
+            }
+            
+            return questions;
+        }
+        
+        // 完成题目解析
+        function finishQuestion(question, buffer) {
+            // 提取正确答案
+            const answerMatch = buffer.match(/（\s*([A-D]+)\s*）/);
+            if (answerMatch) {
+                question.correctAnswer = answerMatch[1];
+                question.content = buffer.substring(0, answerMatch.index).trim();
+            } else {
+                question.content = buffer.trim();
+            }
+        }
+        
+        // 保存题库
+        function saveBanks() {
+            localStorage.setItem('quizmaster_banks', JSON.stringify(questionBanks));
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            renderBankList();
+            
+            // 绑定导入按钮
+            document.querySelector('.fab').onclick = showImport;
+        });
+    </script>
+    
+    <!-- 悬浮按钮 -->
+    <button class="fab" title="导入新题库">➕</button>
+</body>
+</html>
