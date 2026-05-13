@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         if (webView.canGoBack()) {
             webView.goBack();
         } else {
-            super.onBackBackPressed();
+            super.onBackPressed();
         }
     }
 }
